@@ -1,4 +1,4 @@
 CXLibSnapshot
 =============
 
-Screen, WIndow or Area Snapshot
+Screen, Window or Area Snapshot

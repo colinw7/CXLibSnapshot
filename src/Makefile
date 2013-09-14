@@ -46,12 +46,12 @@ $(LEBUG) \
 -L../../COS/lib \
 -L../../CStrUtil/lib \
 -L../../CConfig/lib \
+-L../../CUtil/lib \
 -L../../CTimer/lib \
--L../../CImageLib/lib \
 
 LIBS = \
 -lCXLib -lCConfig -lCImageLib -lCFont -lCTimer -lCArgs \
--lCFile -lCOS -lCStrUtil -lXt -lX11 -lpng -ljpeg
+-lCFile -lCUtil -lCOS -lCStrUtil -lXt -lX11 -lpng -ljpeg
 
 .SUFFIXES: .cpp
 

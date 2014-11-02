@@ -215,12 +215,11 @@ snapshot_bbox(int start_x, int start_y, int end_x, int end_y)
   if (start_y > end_y) std::swap(start_y, end_y);
 
   if (start_x == end_x || start_y == end_y) {
-    fprintf(stderr, "Invalid bbox (%d,%d) -> (%d,%d)\n",
-            start_x, start_y, end_x, end_y);
+    fprintf(stderr, "Invalid bbox (%d,%d) -> (%d,%d)\n", start_x, start_y, end_x, end_y);
     return false;
   }
 
-  fprintf(stderr, "Snapshot of (%d,%d) -> (%d,%d)\n", start_x, start_y, end_x, end_y);
+  fprintf(stderr, "CXLibSnapshot -bbox %d %d %d %d\n", start_x, start_y, end_x, end_y);
 
   CImagePtr image = root->getImage(start_x, start_y, end_x - start_x, end_y - start_y);
 

@@ -44,8 +44,10 @@ $(LEBUG) \
 -L../../CImageLib/lib \
 -L../../CFont/lib \
 -L../../CArgs/lib \
+-L../../CConfig/lib \
 -L../../CFileUtil/lib \
 -L../../CFile/lib \
+-L../../CMath/lib \
 -L../../COS/lib \
 -L../../CStrUtil/lib \
 -L../../CConfig/lib \
@@ -55,7 +57,7 @@ $(LEBUG) \
 
 LIBS = \
 -lCXLib -lCConfig -lCImageLib -lCFont -lCTimer -lCArgs \
--lCFileUtil -lCFile -lCUtil -lCOS -lCRegExp -lCStrUtil \
+-lCFileUtil -lCConfig -lCFile -lCMath -lCUtil -lCOS -lCRegExp -lCStrUtil \
 -lXt -lX11 -lpng -ljpeg -ltre
 
 .SUFFIXES: .cpp

@@ -3,37 +3,52 @@
 #include <COSTimer.h>
 #include <cstdlib>
 
-enum CSnapShotType {
-  SNAPSHOT_ROOT,
-  SNAPSHOT_WINDOW,
-  SNAPSHOT_WINDOW_ID,
-  SNAPSHOT_AREA,
-  SNAPSHOT_BBOX
+enum class CSnapShotType {
+  ROOT,
+  WINDOW,
+  WINDOW_ID,
+  AREA,
+  BBOX
 };
 
-static CXScreen    *screen;
-static CXWindow    *root;
-static std::string  output_file;
+class CSnapShot {
+ public:
+  CSnapShot();
 
-static bool snapshot_root();
-static bool snapshot_window();
-static bool snapshot_window(Window id);
-static bool snapshot_window(CXWindow *window);
-static bool snapshot_area();
-static bool snapshot_bbox(int x1, int y1, int x2, int y2);
-static void usage();
+  const std::string &outputFile() const { return outputFile_; }
+  void setOutputFile(const std::string &s) { outputFile_ = s; }
+
+  bool snapshotRoot();
+  bool snapshotWindow();
+  bool snapshotWindow(Window id);
+  bool snapshotWindow(CXWindow *window);
+  bool snapshotArea();
+  bool snapshotBBox(int x1, int y1, int x2, int y2);
+
+ private:
+  CXScreen*   screen_ { nullptr };
+  CXWindow*   root_   { nullptr };
+  std::string outputFile_;
+};
+
+//------
+
+void usage() {
+  std::cerr << "Usage: CXLibSnapshot [-root|-window|-area|-bbox <x1> <y1> <x2> <y2>] [-help]\n";
+  exit(0);
+}
+
+//------
 
 int
 main(int argc, char **argv)
 {
-  screen = CXMachineInst->getCXScreen(0);
+  CSnapShot snapshot;
 
-  root = screen->getCXRoot();
+  std::string output_file = "snapshot.png";
+  //std::string output_file = "xsnapshot.xwd";
 
-  //output_file = "xsnapshot.xwd";
-  output_file = "snapshot.png";
-
-  CSnapShotType type          = SNAPSHOT_ROOT;
+  CSnapShotType type          = CSnapShotType::ROOT;
   Window        id            = 0;
   bool          animate       = false;
   int           animate_time  = 1000;
@@ -46,23 +61,23 @@ main(int argc, char **argv)
       char *opt = &argv[i][1];
 
       if      (strcmp(opt, "root"  ) == 0)
-        type = SNAPSHOT_ROOT;
+        type = CSnapShotType::ROOT;
       else if (strcmp(opt, "window") == 0)
-        type = SNAPSHOT_WINDOW;
+        type = CSnapShotType::WINDOW;
       else if (strcmp(opt, "windowId") == 0) {
         if (i + 1 < argc)
           id = (Window) atoi(argv[++i]);
         else {
-          fprintf(stderr, "Missing windowId argument\n");
+          std::cerr << "Missing windowId argument\n";
           exit(1);
         }
 
-        type = SNAPSHOT_WINDOW_ID;
+        type = CSnapShotType::WINDOW_ID;
       }
       else if (strcmp(opt, "area"  ) == 0)
-        type = SNAPSHOT_AREA;
+        type = CSnapShotType::AREA;
       else if (strcmp(opt, "bbox"  ) == 0) {
-        type = SNAPSHOT_BBOX;
+        type = CSnapShotType::BBOX;
 
         ++i; if (i < argc) x1 = atoi(argv[i]);
         ++i; if (i < argc) y1 = atoi(argv[i]);
@@ -78,10 +93,11 @@ main(int argc, char **argv)
       else if (strcmp(opt, "help"  ) == 0)
         usage();
       else
-        fprintf(stderr, "Invalid option '-%s'\n", opt);
+        std::cerr << "Invalid option '-" << opt << "'\n";
     }
-    else
+    else {
       output_file = argv[i];
+    }
   }
 
   if (animate) {
@@ -97,18 +113,20 @@ main(int argc, char **argv)
 
       output_file = output_root + "_" + nstr + "." + output_suffix;
 
+      snapshot.setOutputFile(output_file);
+
       bool rc = false;
 
-      if      (type == SNAPSHOT_ROOT)
-        rc = snapshot_root();
-      else if (type == SNAPSHOT_WINDOW)
-        rc = snapshot_window();
-      else if (type == SNAPSHOT_WINDOW_ID)
-        rc = snapshot_window(id);
-      else if (type == SNAPSHOT_AREA)
-        rc = snapshot_area();
-      else if (type == SNAPSHOT_BBOX)
-        rc = snapshot_bbox(x1, y1, x2, y2);
+      if      (type == CSnapShotType::ROOT)
+        rc = snapshot.snapshotRoot();
+      else if (type == CSnapShotType::WINDOW)
+        rc = snapshot.snapshotWindow();
+      else if (type == CSnapShotType::WINDOW_ID)
+        rc = snapshot.snapshotWindow(id);
+      else if (type == CSnapShotType::AREA)
+        rc = snapshot.snapshotArea();
+      else if (type == CSnapShotType::BBOX)
+        rc = snapshot.snapshotBBox(x1, y1, x2, y2);
 
       if (! rc) continue;
 
@@ -116,18 +134,20 @@ main(int argc, char **argv)
     }
   }
   else {
+    snapshot.setOutputFile(output_file);
+
     bool rc = false;
 
-    if      (type == SNAPSHOT_ROOT)
-      rc = snapshot_root();
-    else if (type == SNAPSHOT_WINDOW)
-      rc = snapshot_window();
-    else if (type == SNAPSHOT_WINDOW_ID)
-      rc = snapshot_window(id);
-    else if (type == SNAPSHOT_AREA)
-      rc = snapshot_area();
-    else if (type == SNAPSHOT_BBOX)
-      rc = snapshot_bbox(x1, y1, x2, y2);
+    if      (type == CSnapShotType::ROOT)
+      rc = snapshot.snapshotRoot();
+    else if (type == CSnapShotType::WINDOW)
+      rc = snapshot.snapshotWindow();
+    else if (type == CSnapShotType::WINDOW_ID)
+      rc = snapshot.snapshotWindow(id);
+    else if (type == CSnapShotType::AREA)
+      rc = snapshot.snapshotArea();
+    else if (type == CSnapShotType::BBOX)
+      rc = snapshot.snapshotBBox(x1, y1, x2, y2);
 
     if (! rc)
       exit(1);
@@ -136,53 +156,67 @@ main(int argc, char **argv)
   return 0;
 }
 
-static bool
-snapshot_root()
-{
-  CImagePtr image = root->getImage();
+//------
 
-  CFileType type = CFileUtil::getImageTypeFromName(output_file);
+CSnapShot::
+CSnapShot()
+{
+  screen_ = CXMachineInst->getCXScreen(0);
+
+  root_ = screen_->getCXRoot();
+}
+
+bool
+CSnapShot::
+snapshotRoot()
+{
+  CImagePtr image = root_->getImage();
+
+  CFileType type = CFileUtil::getImageTypeFromName(outputFile());
 
   if (! image.isValid())
     return false;
 
-  image->write(output_file, type);
+  image->write(outputFile(), type);
 
   return true;
 }
 
-static bool
-snapshot_window()
+bool
+CSnapShot::
+snapshotWindow()
 {
   CXWindow *window = CXMachineInst->selectWindow();
 
-  if (window == NULL)
+  if (! window)
     return false;
 
-  bool rc = snapshot_window(window);
+  bool rc = snapshotWindow(window);
 
   delete window;
 
   return rc;
 }
 
-static bool
-snapshot_window(Window id)
+bool
+CSnapShot::
+snapshotWindow(Window id)
 {
   CXWindow *window = new CXWindow(id);
 
-  if (window == NULL)
+  if (! window)
     return false;
 
-  bool rc = snapshot_window(window);
+  bool rc = snapshotWindow(window);
 
   delete window;
 
   return rc;
 }
 
-static bool
-snapshot_window(CXWindow *window)
+bool
+CSnapShot::
+snapshotWindow(CXWindow *window)
 {
   window->raiseWait(10);
 
@@ -191,52 +225,48 @@ snapshot_window(CXWindow *window)
   if (! image.isValid())
     return false;
 
-  CFileType type = CFileUtil::getImageTypeFromName(output_file);
+  CFileType type = CFileUtil::getImageTypeFromName(outputFile());
 
-  image->write(output_file, type);
+  image->write(outputFile(), type);
 
   return true;
 }
 
-static bool
-snapshot_area()
+bool
+CSnapShot::
+snapshotArea()
 {
   int start_x = 0, start_y = 0, end_x = 0, end_y = 0;
 
   CXMachineInst->selectRootRegion(&start_x, &start_y, &end_x, &end_y);
 
-  return snapshot_bbox(start_x, start_y, end_x, end_y);
+  return snapshotBBox(start_x, start_y, end_x, end_y);
 }
 
-static bool
-snapshot_bbox(int start_x, int start_y, int end_x, int end_y)
+bool
+CSnapShot::
+snapshotBBox(int start_x, int start_y, int end_x, int end_y)
 {
   if (start_x > end_x) std::swap(start_x, end_x);
   if (start_y > end_y) std::swap(start_y, end_y);
 
   if (start_x == end_x || start_y == end_y) {
-    fprintf(stderr, "Invalid bbox (%d,%d) -> (%d,%d)\n", start_x, start_y, end_x, end_y);
+    std::cerr << "Invalid bbox (" << start_x << "," << start_y << ") -> (" <<
+                                     end_x   << "," << end_y   << ")\n";
     return false;
   }
 
-  fprintf(stderr, "CXLibSnapshot -bbox %d %d %d %d\n", start_x, start_y, end_x, end_y);
+  std::cerr << "CXLibSnapshot -bbox " << start_x << " " << start_y << " " <<
+                                         end_x   << " " << end_y   << "\n";
 
-  CImagePtr image = root->getImage(start_x, start_y, end_x - start_x, end_y - start_y);
+  CImagePtr image = root_->getImage(start_x, start_y, end_x - start_x, end_y - start_y);
 
   if (! image.isValid())
     return false;
 
-  CFileType type = CFileUtil::getImageTypeFromName(output_file);
+  CFileType type = CFileUtil::getImageTypeFromName(outputFile());
 
-  image->write(output_file, type);
+  image->write(outputFile(), type);
 
   return true;
-}
-
-static void
-usage()
-{
-  fprintf(stderr, "Usage: CXLibSnapshot "
-          "[-root|-window|-area|-bbox <x1> <y1> <x2> <y2>] [-help]\n");
-  exit(0);
 }

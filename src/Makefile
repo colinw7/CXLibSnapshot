@@ -40,6 +40,7 @@ CPPFLAGS = \
 LFLAGS = \
 $(LEBUG) \
 -L$(LIB_DIR) \
+-L../../CRenderer/lib \
 -L../../CXLib/lib \
 -L../../CImageLib/lib \
 -L../../CFont/lib \
@@ -56,9 +57,9 @@ $(LEBUG) \
 -L../../CTimer/lib \
 
 LIBS = \
--lCXLib -lCConfig -lCImageLib -lCFont -lCTimer -lCArgs \
+-lCXLib -lCXRenderer -lCRenderer -lCConfig -lCImageLib -lCFont -lCTimer -lCArgs \
 -lCFileUtil -lCConfig -lCFile -lCMath -lCUtil -lCOS -lCRegExp -lCStrUtil \
--lXt -lX11 -lpng -ljpeg -ltre
+-lXt -lX11 -lpng -ljpeg -ltre -lfreetype
 
 .SUFFIXES: .cpp
 

@@ -66,7 +66,7 @@ main(int argc, char **argv)
         type = CSnapShotType::WINDOW;
       else if (strcmp(opt, "windowId") == 0) {
         if (i + 1 < argc)
-          id = (Window) atoi(argv[++i]);
+          id = static_cast<Window>(atoi(argv[++i]));
         else {
           std::cerr << "Missing windowId argument\n";
           exit(1);

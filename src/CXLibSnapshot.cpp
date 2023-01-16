@@ -130,7 +130,7 @@ main(int argc, char **argv)
 
       if (! rc) continue;
 
-      COSTimer::msleep(animate_time);
+      COSTimer::msleep(uint(animate_time));
     }
   }
   else {
@@ -259,7 +259,7 @@ snapshotBBox(int start_x, int start_y, int end_x, int end_y)
   std::cerr << "CXLibSnapshot -bbox " << start_x << " " << start_y << " " <<
                                          end_x   << " " << end_y   << "\n";
 
-  CImagePtr image = root_->getImage(start_x, start_y, end_x - start_x, end_y - start_y);
+  auto image = root_->getImage(start_x, start_y, uint(end_x - start_x), uint(end_y - start_y));
 
   if (! image.isValid())
     return false;
